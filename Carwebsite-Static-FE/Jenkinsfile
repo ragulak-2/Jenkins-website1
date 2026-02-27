@@ -1,17 +1,48 @@
 pipeline {
     agent any
 
+    environment {
+        GIT_REPO = 'https://github.com/ragulak-2/Jenkins-website1.git'
+        BRANCH = 'main'
+        DEPLOY_DIR = '/var/www/html'
+    }
+
     stages {
-        stage('Build') {
+
+        stage('Clean Workspace') {
             steps {
-                echo 'Building website...'
+                cleanWs()
             }
         }
 
-        stage('Deploy') {
+        stage('Checkout Code') {
             steps {
-                sh 'sudo cp -r * /var/www/html/'
+                git branch: "${BRANCH}", url: "${GIT_REPO}"
             }
+        }
+
+        stage('Build') {
+            steps {
+                echo "No build required for static website"
+            }
+        }
+
+        stage('Deploy to EC2') {
+            steps {
+                sh """
+                sudo rm -rf ${DEPLOY_DIR}/*
+                sudo cp -r * ${DEPLOY_DIR}/
+                """
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'Deployment Successful!'
+        }
+        failure {
+            echo 'Build Failed!'
         }
     }
 }
